@@ -1,7 +1,9 @@
-package com.melkiy.teamvoytest;
+package com.melkiy.teamvoytest.activities;
 
 import android.os.Bundle;
 import android.support.v7.app.AppCompatActivity;
+
+import com.melkiy.teamvoytest.R;
 
 public class MainActivity extends AppCompatActivity {
 
