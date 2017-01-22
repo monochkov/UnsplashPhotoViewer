@@ -1,18 +1,22 @@
 package com.melkiy.teamvoytest.models;
 
-import org.joda.time.Instant;
+import com.fasterxml.jackson.annotation.JsonProperty;
+
+import java.util.Date;
 
 public class Photo {
 
     private String id;
-    private Instant createdAt;
+
+    @JsonProperty("created_at")
+    private Date createdAt;
     private int width;
     private int height;
     private String color;
-    private int downloads;
     private int likes;
     private boolean likedByUser;
     private User user;
+    private Urls urls;
 
     public String getId() {
         return id;
@@ -22,11 +26,11 @@ public class Photo {
         this.id = id;
     }
 
-    public Instant getCreatedAt() {
+    public Date getCreatedAt() {
         return createdAt;
     }
 
-    public void setCreatedAt(Instant createdAt) {
+    public void setCreatedAt(Date createdAt) {
         this.createdAt = createdAt;
     }
 
@@ -54,14 +58,6 @@ public class Photo {
         this.color = color;
     }
 
-    public int getDownloads() {
-        return downloads;
-    }
-
-    public void setDownloads(int downloads) {
-        this.downloads = downloads;
-    }
-
     public int getLikes() {
         return likes;
     }
@@ -84,5 +80,28 @@ public class Photo {
 
     public void setUser(User user) {
         this.user = user;
+    }
+
+    public Urls getUrls() {
+        return urls;
+    }
+
+    public void setUrls(Urls urls) {
+        this.urls = urls;
+    }
+
+    @Override
+    public String toString() {
+        return "Photo{" +
+                "id='" + id + '\'' +
+                ", createdAt=" + createdAt +
+                ", width=" + width +
+                ", height=" + height +
+                ", color='" + color + '\'' +
+                ", likes=" + likes +
+                ", likedByUser=" + likedByUser +
+                ", user=" + user.toString() +
+                ", urls=" + urls.toString() +
+                '}';
     }
 }
