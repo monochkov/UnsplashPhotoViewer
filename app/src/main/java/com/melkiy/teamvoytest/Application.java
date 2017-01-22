@@ -11,6 +11,9 @@ public class Application extends android.app.Application {
         super.onCreate();
 
         DisplayImageOptions defaultOptions = new DisplayImageOptions.Builder()
+                .showImageOnLoading(android.R.color.transparent)
+                .showImageForEmptyUri(android.R.drawable.sym_def_app_icon)
+                .showImageOnFail(android.R.drawable.sym_def_app_icon)
                 .cacheInMemory(true)
                 .cacheOnDisk(true)
                 .build();

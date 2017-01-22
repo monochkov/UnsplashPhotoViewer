@@ -81,13 +81,12 @@ public final class API {
             @Override
             public void onResponse(Call<User> call, Response<User> response) {
                 setCurrentUser(response.body());
-                //TODO: for navigation drawer
-//                eventBus.post(currentUser);
+                eventBus.post(currentUser);
             }
 
             @Override
             public void onFailure(Call<User> call, Throwable t) {
-
+                t.printStackTrace();
             }
         });
     }

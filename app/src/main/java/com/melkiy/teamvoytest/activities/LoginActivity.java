@@ -95,8 +95,7 @@ public class LoginActivity extends AppCompatActivity {
             public void onResponse(Call<User> call, Response<User> response) {
                 User currentUser = response.body();
                 api.setCurrentUser(currentUser);
-                //TODO: for navigation drawer
-                //eventBus.post(currentUser);
+                eventBus.post(currentUser);
                 Intents.startMainActivity(LoginActivity.this);
             }
 

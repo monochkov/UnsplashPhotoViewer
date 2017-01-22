@@ -2,18 +2,20 @@ package com.melkiy.teamvoytest.models;
 
 import com.fasterxml.jackson.annotation.JsonProperty;
 
-import java.util.Date;
+import org.joda.time.Instant;
 
 public class Photo {
 
     private String id;
 
     @JsonProperty("created_at")
-    private Date createdAt;
+    private Instant createdAt;
     private int width;
     private int height;
     private String color;
     private int likes;
+
+    @JsonProperty("liked_by_user")
     private boolean likedByUser;
     private User user;
     private Urls urls;
@@ -26,11 +28,11 @@ public class Photo {
         this.id = id;
     }
 
-    public Date getCreatedAt() {
+    public Instant getCreatedAt() {
         return createdAt;
     }
 
-    public void setCreatedAt(Date createdAt) {
+    public void setCreatedAt(Instant createdAt) {
         this.createdAt = createdAt;
     }
 

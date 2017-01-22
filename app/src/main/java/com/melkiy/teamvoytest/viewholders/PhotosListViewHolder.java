@@ -3,6 +3,7 @@ package com.melkiy.teamvoytest.viewholders;
 import android.support.v7.widget.RecyclerView;
 import android.view.View;
 import android.widget.ImageView;
+import android.widget.LinearLayout;
 import android.widget.TextView;
 
 import com.melkiy.teamvoytest.R;
@@ -15,6 +16,7 @@ public class PhotosListViewHolder extends RecyclerView.ViewHolder {
     public final ImageView photo;
     public final ImageView like;
     public final TextView countLikes;
+    public final LinearLayout likeLayout;
 
     public PhotosListViewHolder(View itemView) {
         super(itemView);
@@ -25,5 +27,6 @@ public class PhotosListViewHolder extends RecyclerView.ViewHolder {
         photo = (ImageView) itemView.findViewById(R.id.photo_image_view);
         like = (ImageView) itemView.findViewById(R.id.like_image_view);
         countLikes = (TextView) itemView.findViewById(R.id.like_counter_textview);
+        likeLayout = (LinearLayout) itemView.findViewById(R.id.like_layout);
     }
 }
