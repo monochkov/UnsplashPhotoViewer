@@ -14,6 +14,7 @@ import com.melkiy.teamvoytest.models.User;
 import org.greenrobot.eventbus.EventBus;
 
 import java.io.IOException;
+import java.util.concurrent.TimeUnit;
 
 import okhttp3.Interceptor;
 import okhttp3.OkHttpClient;
@@ -48,6 +49,8 @@ public final class API {
 
     private API() {
         OkHttpClient client = new OkHttpClient.Builder()
+                .connectTimeout(10, TimeUnit.MINUTES)
+                .readTimeout(30, TimeUnit.MINUTES)
                 .addInterceptor(new TokenInterceptor())
                 .build();
 
@@ -72,16 +75,20 @@ public final class API {
         this.currentUser = authenticationStore.readCurrentUser();
 
         if (isAuthenticated()) {
-            updateCurrentUser(currentUser);
+            updateCurrentUser();
         }
     }
 
-    private void updateCurrentUser(User currentUser) {
+    private void updateCurrentUser() {
         userService.getCurrentUser().enqueue(new Callback<User>() {
             @Override
             public void onResponse(Call<User> call, Response<User> response) {
-                setCurrentUser(response.body());
-                eventBus.post(currentUser);
+                if (response != null) {
+                    if (response.isSuccessful()) {
+                        setCurrentUser(response.body());
+                        eventBus.post(response.body());
+                    }
+                }
             }
 
             @Override

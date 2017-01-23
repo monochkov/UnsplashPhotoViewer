@@ -99,10 +99,12 @@ public class MainActivity extends AppCompatActivity
         switch (item.getItemId()) {
             case R.id.nav_list:
                 toolbar.setTitle("Photos");
+                menu.findItem(R.id.action_sort).setVisible(true);
                 openFragment(new ListFragment());
                 break;
             case R.id.nav_random_photo:
                 toolbar.setTitle("Random photo");
+                menu.findItem(R.id.action_sort).setVisible(false);
                 openFragment(new RandomPhotoFragment());
                 break;
         }

@@ -25,6 +25,10 @@ public interface PhotoService {
 
     @GET("photos")
     Call<List<Photo>> getPhotos(@Query("page") int page,
+                                @Query("order_by") String order);
+
+    @GET("photos")
+    Call<List<Photo>> getPhotos(@Query("page") int page,
                                 @Query("per_page") int perPage,
                                 @Query("order_by") String order);
 

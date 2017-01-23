@@ -13,4 +13,5 @@
     <string name="order_by">Order by</string>
     <string name="photos">Photos</string>
     <string name="random_photo">Random photo</string>
+    <string name="no_internet_connection">No Internet connection</string>
 </resources>

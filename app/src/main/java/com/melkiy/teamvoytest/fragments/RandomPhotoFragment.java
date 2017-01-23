@@ -4,6 +4,7 @@ import android.graphics.Color;
 import android.os.Bundle;
 import android.support.v4.app.Fragment;
 import android.support.v4.widget.SwipeRefreshLayout;
+import android.support.v7.widget.CardView;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
@@ -17,6 +18,7 @@ import com.melkiy.teamvoytest.models.Photo;
 import com.melkiy.teamvoytest.rest.API;
 import com.melkiy.teamvoytest.rest.PhotoService;
 import com.melkiy.teamvoytest.utils.Intents;
+import com.melkiy.teamvoytest.utils.InternetUtils;
 import com.nostra13.universalimageloader.core.DisplayImageOptions;
 import com.nostra13.universalimageloader.core.ImageLoader;
 import com.nostra13.universalimageloader.core.display.RoundedBitmapDisplayer;
@@ -43,6 +45,8 @@ public class RandomPhotoFragment extends Fragment implements SwipeRefreshLayout.
     private ImageView like;
     private TextView countLikes;
     private LinearLayout likeLayout;
+    private TextView noInternetTextView;
+    private CardView cardView;
 
     private Photo photo;
 
@@ -52,6 +56,7 @@ public class RandomPhotoFragment extends Fragment implements SwipeRefreshLayout.
     @Override
     public void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
+        setHasOptionsMenu(false);
     }
 
     @Override
@@ -66,6 +71,8 @@ public class RandomPhotoFragment extends Fragment implements SwipeRefreshLayout.
         like = (ImageView) view.findViewById(R.id.like_image_view);
         countLikes = (TextView) view.findViewById(R.id.like_counter_textview);
         likeLayout = (LinearLayout) view.findViewById(R.id.like_layout);
+        noInternetTextView = (TextView) view.findViewById(R.id.no_internet_textview);
+        cardView = (CardView) view.findViewById(R.id.card_view);
 
         swipeRefreshLayout = (SwipeRefreshLayout) view.findViewById(R.id.swipe_refresh);
         swipeRefreshLayout.setOnRefreshListener(this);
@@ -81,7 +88,12 @@ public class RandomPhotoFragment extends Fragment implements SwipeRefreshLayout.
                 .cacheOnDisk(true)
                 .build();
 
-        loadRandomPhoto();
+
+        setVisibility(InternetUtils.isOnline(getContext()));
+        if (InternetUtils.isOnline(getContext())) {
+            loadRandomPhoto();
+            swipeRefreshLayout.setRefreshing(false);
+        }
 
         photoImageView.setOnClickListener(v -> {
             Intents.startPhotoActivity(getContext(), photo.getUrls().getRegular());
@@ -101,10 +113,12 @@ public class RandomPhotoFragment extends Fragment implements SwipeRefreshLayout.
         photoService.getRandomPhoto().enqueue(new Callback<Photo>() {
             @Override
             public void onResponse(Call<Photo> call, Response<Photo> response) {
-                Photo photo = response.body();
-                setPhoto(photo);
-                initializeFields(photo);
-                swipeRefreshLayout.setRefreshing(false);
+                if (response != null) {
+                    if (response.isSuccessful()) {
+                        setPhoto(response.body());
+                        initializeFields(response.body());
+                    }
+                }
             }
 
             @Override
@@ -115,11 +129,14 @@ public class RandomPhotoFragment extends Fragment implements SwipeRefreshLayout.
     }
 
     private void like(String photoId) {
-        System.out.println("Like " + photoId);
         photoService.like(photoId).enqueue(new Callback<LikeResponse>() {
             @Override
             public void onResponse(Call<LikeResponse> call, Response<LikeResponse> response) {
-                updatePhoto(response.body());
+                if (response != null) {
+                    if (response.isSuccessful()) {
+                        updatePhoto(response.body());
+                    }
+                }
             }
 
             @Override
@@ -133,7 +150,11 @@ public class RandomPhotoFragment extends Fragment implements SwipeRefreshLayout.
         photoService.unlike(photoId).enqueue(new Callback<LikeResponse>() {
             @Override
             public void onResponse(Call<LikeResponse> call, Response<LikeResponse> response) {
-                updatePhoto(response.body());
+                if (response != null) {
+                    if (response.isSuccessful()) {
+                        updatePhoto(response.body());
+                    }
+                }
             }
 
             @Override
@@ -152,10 +173,10 @@ public class RandomPhotoFragment extends Fragment implements SwipeRefreshLayout.
 
     private void setPhoto(Photo photo) {
         this.photo = photo;
+        initializeFields(photo);
     }
 
     private void initializeFields(Photo photo) {
-        System.out.println(photo.toString());
         imageLoader.displayImage(photo.getUser().getProfileImage().getMedium(), userProfilePhoto, options);
         username.setText(photo.getUser().getName());
 
@@ -175,6 +196,20 @@ public class RandomPhotoFragment extends Fragment implements SwipeRefreshLayout.
 
     @Override
     public void onRefresh() {
-        loadRandomPhoto();
+        setVisibility(InternetUtils.isOnline(getContext()));
+        if (InternetUtils.isOnline(getContext())) {
+            loadRandomPhoto();
+        }
+        swipeRefreshLayout.setRefreshing(false);
+    }
+
+    private void setVisibility(boolean visibility) {
+        if (visibility) {
+            cardView.setVisibility(View.VISIBLE);
+            noInternetTextView.setVisibility(View.GONE);
+        } else {
+            cardView.setVisibility(View.GONE);
+            noInternetTextView.setVisibility(View.VISIBLE);
+        }
     }
 }

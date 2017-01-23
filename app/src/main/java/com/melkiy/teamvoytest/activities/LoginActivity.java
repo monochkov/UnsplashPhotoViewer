@@ -3,10 +3,13 @@ package com.melkiy.teamvoytest.activities;
 import android.os.Build;
 import android.os.Bundle;
 import android.support.annotation.RequiresApi;
+import android.support.v4.widget.SwipeRefreshLayout;
 import android.support.v7.app.AppCompatActivity;
+import android.view.View;
 import android.webkit.WebResourceRequest;
 import android.webkit.WebView;
 import android.webkit.WebViewClient;
+import android.widget.TextView;
 
 import com.melkiy.teamvoytest.BuildConfig;
 import com.melkiy.teamvoytest.R;
@@ -15,6 +18,7 @@ import com.melkiy.teamvoytest.models.User;
 import com.melkiy.teamvoytest.rest.API;
 import com.melkiy.teamvoytest.rest.AuthorizationService;
 import com.melkiy.teamvoytest.utils.Intents;
+import com.melkiy.teamvoytest.utils.InternetUtils;
 
 import org.greenrobot.eventbus.EventBus;
 
@@ -22,7 +26,7 @@ import retrofit2.Call;
 import retrofit2.Callback;
 import retrofit2.Response;
 
-public class LoginActivity extends AppCompatActivity {
+public class LoginActivity extends AppCompatActivity implements SwipeRefreshLayout.OnRefreshListener {
 
     public static final String AUTHORIZE_URL = "https://unsplash.com/oauth/authorize";
     public static final String TOKEN_URL = "https://unsplash.com/oauth/token";
@@ -34,6 +38,8 @@ public class LoginActivity extends AppCompatActivity {
     private EventBus eventBus = EventBus.getDefault();
     private API api = API.getInstance();
     private WebView webView;
+    private TextView noInternetConnectionTextView;
+    private SwipeRefreshLayout swipeRefreshLayout;
     private AuthorizationService authorizationService;
 
     @Override
@@ -43,7 +49,12 @@ public class LoginActivity extends AppCompatActivity {
 
         authorizationService = API.getInstance().getAuthorizationService();
 
+        noInternetConnectionTextView = (TextView) findViewById(R.id.no_internet_textview);
         webView = (WebView) findViewById(R.id.webview);
+        swipeRefreshLayout = (SwipeRefreshLayout) findViewById(R.id.swipe_refresh);
+
+        setVisibility(InternetUtils.isOnline(this));
+
         webView.setWebViewClient(new WebViewClient() {
             //API lower than 21
             @Override
@@ -77,9 +88,13 @@ public class LoginActivity extends AppCompatActivity {
                 .enqueue(new Callback<AccessToken>() {
                     @Override
                     public void onResponse(Call<AccessToken> call, Response<AccessToken> response) {
-                        AccessToken accessToken = response.body();
-                        api.setAccessToken(accessToken);
-                        loadCurrentUser();
+                        if (response != null) {
+                            if (response.isSuccessful()) {
+                                AccessToken accessToken = response.body();
+                                api.setAccessToken(accessToken);
+                                loadCurrentUser();
+                            }
+                        }
                     }
 
                     @Override
@@ -93,10 +108,14 @@ public class LoginActivity extends AppCompatActivity {
         api.getUserService().getCurrentUser().enqueue(new Callback<User>() {
             @Override
             public void onResponse(Call<User> call, Response<User> response) {
-                User currentUser = response.body();
-                api.setCurrentUser(currentUser);
-                eventBus.post(currentUser);
-                Intents.startMainActivity(LoginActivity.this);
+                if (response !=null) {
+                    if (response.isSuccessful()) {
+                        User currentUser = response.body();
+                        api.setCurrentUser(currentUser);
+                        eventBus.post(currentUser);
+                        Intents.startMainActivity(LoginActivity.this);
+                    }
+                }
             }
 
             @Override
@@ -106,4 +125,19 @@ public class LoginActivity extends AppCompatActivity {
         });
     }
 
+    @Override
+    public void onRefresh() {
+        setVisibility(InternetUtils.isOnline(this));
+        swipeRefreshLayout.setRefreshing(false);
+    }
+
+    private void setVisibility(boolean webViewVisible) {
+        if (webViewVisible) {
+            webView.setVisibility(View.VISIBLE);
+            noInternetConnectionTextView.setVisibility(View.GONE);
+        } else {
+            webView.setVisibility(View.GONE);
+            noInternetConnectionTextView.setVisibility(View.VISIBLE);
+        }
+    }
 }
