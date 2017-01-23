@@ -18,21 +18,18 @@ import com.melkiy.teamvoytest.R;
 import com.melkiy.teamvoytest.fragments.ListFragment;
 import com.melkiy.teamvoytest.fragments.RandomPhotoFragment;
 import com.melkiy.teamvoytest.models.User;
+import com.melkiy.teamvoytest.rest.API;
 import com.nostra13.universalimageloader.core.DisplayImageOptions;
 import com.nostra13.universalimageloader.core.ImageLoader;
 import com.nostra13.universalimageloader.core.display.RoundedBitmapDisplayer;
 
-import org.greenrobot.eventbus.EventBus;
-import org.greenrobot.eventbus.Subscribe;
-import org.greenrobot.eventbus.ThreadMode;
-
 public class MainActivity extends AppCompatActivity
         implements NavigationView.OnNavigationItemSelectedListener {
 
-    private EventBus eventBus = EventBus.getDefault();
     private DisplayImageOptions options;
     private ImageLoader imageLoader = ImageLoader.getInstance();
     private Menu menu;
+    private User currentUser;
 
     private ImageView profileImageView;
     private TextView nameTextView;
@@ -61,6 +58,25 @@ public class MainActivity extends AppCompatActivity
         profileImageView = (ImageView) headerLayout.findViewById(R.id.profile_photo_image_view);
         nameTextView = (TextView) headerLayout.findViewById(R.id.name_text_view);
         usernameTextView = (TextView) headerLayout.findViewById(R.id.username_text_view);
+
+        if (getIntent() != null) {
+            currentUser = (User) getIntent().getSerializableExtra(User.CURRENT_USER);
+        } else {
+            currentUser = API.getInstance().getCurrentUser();
+        }
+        if (currentUser != null) {
+            options = new DisplayImageOptions.Builder()
+                    .displayer(new RoundedBitmapDisplayer(1000))
+                    .showImageOnLoading(android.R.color.transparent)
+                    .showImageForEmptyUri(android.R.drawable.sym_def_app_icon)
+                    .showImageOnFail(android.R.drawable.sym_def_app_icon)
+                    .cacheInMemory(true)
+                    .cacheOnDisk(true)
+                    .build();
+            imageLoader.displayImage(currentUser.getProfileImage().getMedium(), profileImageView, options);
+            nameTextView.setText(currentUser.getName());
+            usernameTextView.setText(currentUser.getUsername());
+        }
 
         getSupportFragmentManager()
                 .beginTransaction()
@@ -114,18 +130,6 @@ public class MainActivity extends AppCompatActivity
         return true;
     }
 
-    @Override
-    protected void onStart() {
-        eventBus.register(this);
-        super.onStart();
-    }
-
-    @Override
-    protected void onStop() {
-        eventBus.unregister(this);
-        super.onStop();
-    }
-
     private void openFragment(Fragment fragment) {
         if (fragment != null) {
             getSupportFragmentManager()
@@ -134,20 +138,5 @@ public class MainActivity extends AppCompatActivity
                     .addToBackStack(null)
                     .commit();
         }
-    }
-
-    @Subscribe(threadMode = ThreadMode.MAIN)
-    public void updateNavigationDrawer(User currentUser) {
-        options = new DisplayImageOptions.Builder()
-                .displayer(new RoundedBitmapDisplayer(1000))
-                .showImageOnLoading(android.R.color.transparent)
-                .showImageForEmptyUri(android.R.drawable.sym_def_app_icon)
-                .showImageOnFail(android.R.drawable.sym_def_app_icon)
-                .cacheInMemory(true)
-                .cacheOnDisk(true)
-                .build();
-        imageLoader.displayImage(currentUser.getProfileImage().getMedium(), profileImageView, options);
-        nameTextView.setText(currentUser.getName());
-        usernameTextView.setText(currentUser.getUsername());
     }
 }

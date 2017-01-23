@@ -4,7 +4,9 @@ import com.fasterxml.jackson.annotation.JsonProperty;
 
 import org.joda.time.Instant;
 
-public class Photo {
+import java.io.Serializable;
+
+public class Photo implements Serializable {
 
     private String id;
 

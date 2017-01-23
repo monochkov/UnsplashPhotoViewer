@@ -1,6 +1,8 @@
 package com.melkiy.teamvoytest.models;
 
-public class Urls {
+import java.io.Serializable;
+
+public class Urls implements Serializable {
 
     private String raw;
     private String full;

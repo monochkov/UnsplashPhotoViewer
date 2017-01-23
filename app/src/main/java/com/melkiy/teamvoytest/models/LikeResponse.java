@@ -1,6 +1,8 @@
 package com.melkiy.teamvoytest.models;
 
-public class LikeResponse {
+import java.io.Serializable;
+
+public class LikeResponse implements Serializable {
 
     private Photo photo;
     private User user;

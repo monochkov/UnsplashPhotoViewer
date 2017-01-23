@@ -1,6 +1,8 @@
 package com.melkiy.teamvoytest.models;
 
-public class ProfileImage {
+import java.io.Serializable;
+
+public class ProfileImage implements Serializable {
 
     private String small;
     private String medium;

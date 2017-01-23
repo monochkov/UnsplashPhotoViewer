@@ -2,7 +2,11 @@ package com.melkiy.teamvoytest.models;
 
 import com.fasterxml.jackson.annotation.JsonProperty;
 
-public class User {
+import java.io.Serializable;
+
+public class User implements Serializable {
+
+    public static final String CURRENT_USER = "current_user";
 
     private String id;
     private String username;

@@ -2,7 +2,9 @@ package com.melkiy.teamvoytest.models;
 
 import com.fasterxml.jackson.annotation.JsonProperty;
 
-public class AccessToken {
+import java.io.Serializable;
+
+public class AccessToken implements Serializable {
 
     @JsonProperty("access_token")
     private String accessToken;

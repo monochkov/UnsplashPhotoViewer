@@ -1,15 +1,12 @@
 package com.melkiy.teamvoytest.activities;
 
-import android.os.Build;
+import android.annotation.SuppressLint;
+import android.net.http.SslError;
 import android.os.Bundle;
-import android.support.annotation.RequiresApi;
-import android.support.v4.widget.SwipeRefreshLayout;
 import android.support.v7.app.AppCompatActivity;
-import android.view.View;
-import android.webkit.WebResourceRequest;
+import android.webkit.SslErrorHandler;
 import android.webkit.WebView;
 import android.webkit.WebViewClient;
-import android.widget.TextView;
 
 import com.melkiy.teamvoytest.BuildConfig;
 import com.melkiy.teamvoytest.R;
@@ -17,17 +14,13 @@ import com.melkiy.teamvoytest.models.AccessToken;
 import com.melkiy.teamvoytest.models.User;
 import com.melkiy.teamvoytest.rest.API;
 import com.melkiy.teamvoytest.rest.AuthorizationService;
-import com.melkiy.teamvoytest.utils.Constants;
 import com.melkiy.teamvoytest.utils.Intents;
-import com.melkiy.teamvoytest.utils.InternetUtils;
-
-import org.greenrobot.eventbus.EventBus;
 
 import retrofit2.Call;
 import retrofit2.Callback;
 import retrofit2.Response;
 
-public class LoginActivity extends AppCompatActivity implements SwipeRefreshLayout.OnRefreshListener {
+public class LoginActivity extends AppCompatActivity {
 
     public static final String AUTHORIZE_URL = "https://unsplash.com/oauth/authorize";
     public static final String TOKEN_URL = "https://unsplash.com/oauth/token";
@@ -36,13 +29,11 @@ public class LoginActivity extends AppCompatActivity implements SwipeRefreshLayo
     public static final String SITE = "teamvoy-test.com";
     public static final String GRANT_TYPE = "authorization_code";
 
-    private EventBus eventBus = EventBus.getDefault();
     private API api = API.getInstance();
     private WebView webView;
-    private TextView errorTextView;
-    private SwipeRefreshLayout swipeRefreshLayout;
     private AuthorizationService authorizationService;
 
+    @SuppressLint("SetJavaScriptEnabled")
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
@@ -50,33 +41,32 @@ public class LoginActivity extends AppCompatActivity implements SwipeRefreshLayo
 
         authorizationService = API.getInstance().getAuthorizationService();
 
-        errorTextView = (TextView) findViewById(R.id.no_internet_textview);
         webView = (WebView) findViewById(R.id.webview);
-        swipeRefreshLayout = (SwipeRefreshLayout) findViewById(R.id.swipe_refresh);
-
-        setVisibility(InternetUtils.isOnline(this));
+        webView.getSettings().setJavaScriptEnabled(true);
 
         webView.setWebViewClient(new WebViewClient() {
-            //API lower than 21
             @Override
             public boolean shouldOverrideUrlLoading(WebView view, String url) {
                 if (url.startsWith(BuildConfig.REDIRECT_URI)) {
                     String code = url.substring(url.indexOf('=') + 1);
                     authorize(code);
+                } else {
+                    webView.loadUrl(url);
                 }
                 return true;
             }
 
-            @RequiresApi(api = Build.VERSION_CODES.LOLLIPOP)
             @Override
-            public boolean shouldOverrideUrlLoading(WebView view, WebResourceRequest request) {
-                if (request.getUrl().getHost().equals(SITE)) {
-                    String code = request.getUrl().getQueryParameter(RESPONSE_TYPE);
-                    authorize(code);
-                }
-                return true;
+            public void onReceivedSslError(WebView view, SslErrorHandler handler, SslError error) {
+                handler.proceed();
             }
         });
+
+        loadAuthorizeUrl();
+
+    }
+
+    private void loadAuthorizeUrl() {
         webView.loadUrl(AUTHORIZE_URL +
                 "?client_id=" + BuildConfig.CLIENT_ID +
                 "&redirect_uri=" + BuildConfig.REDIRECT_URI +
@@ -94,9 +84,6 @@ public class LoginActivity extends AppCompatActivity implements SwipeRefreshLayo
                                 AccessToken accessToken = response.body();
                                 api.setAccessToken(accessToken);
                                 loadCurrentUser();
-                            } if (response.code() == Constants.ERROR_STATUS_FORBIDDEN) {
-                                setVisibility(false);
-                                errorTextView.setText(Constants.FORBIDDEN_MESSAGE);
                             }
                         }
                     }
@@ -112,15 +99,11 @@ public class LoginActivity extends AppCompatActivity implements SwipeRefreshLayo
         api.getUserService().getCurrentUser().enqueue(new Callback<User>() {
             @Override
             public void onResponse(Call<User> call, Response<User> response) {
-                if (response !=null) {
+                if (response != null) {
                     if (response.isSuccessful()) {
                         User currentUser = response.body();
                         api.setCurrentUser(currentUser);
-                        eventBus.post(currentUser);
-                        Intents.startMainActivity(LoginActivity.this);
-                    } if (response.code() == Constants.ERROR_STATUS_FORBIDDEN) {
-                        setVisibility(false);
-                        errorTextView.setText(Constants.FORBIDDEN_MESSAGE);
+                        Intents.startMainActivity(LoginActivity.this, currentUser);
                     }
                 }
             }
@@ -130,21 +113,5 @@ public class LoginActivity extends AppCompatActivity implements SwipeRefreshLayo
                 t.printStackTrace();
             }
         });
-    }
-
-    @Override
-    public void onRefresh() {
-        setVisibility(InternetUtils.isOnline(this));
-        swipeRefreshLayout.setRefreshing(false);
-    }
-
-    private void setVisibility(boolean webViewVisible) {
-        if (webViewVisible) {
-            webView.setVisibility(View.VISIBLE);
-            errorTextView.setVisibility(View.GONE);
-        } else {
-            webView.setVisibility(View.GONE);
-            errorTextView.setVisibility(View.VISIBLE);
-        }
     }
 }

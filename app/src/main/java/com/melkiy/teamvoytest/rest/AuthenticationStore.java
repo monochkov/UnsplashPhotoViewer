@@ -36,12 +36,14 @@ public class AuthenticationStore {
 
     public AccessToken readAccessToken() {
         String rawToken = preferences.getString(ACCESS_TOKEN, "");
-        try {
-            return objectMapper.readValue(rawToken, AccessToken.class);
-        } catch (IOException e) {
-            e.printStackTrace();
-            return null;
-        }
+        if (!rawToken.isEmpty()) {
+            try {
+                return objectMapper.readValue(rawToken, AccessToken.class);
+            } catch (IOException e) {
+                e.printStackTrace();
+                return null;
+            }
+        } else return null;
     }
 
     public void saveCurrentUser(User user) {
@@ -56,12 +58,14 @@ public class AuthenticationStore {
     }
 
     public User readCurrentUser() {
-        String rawToken = preferences.getString(CURRENT_USER, "");
-        try {
-            return objectMapper.readValue(rawToken, User.class);
-        } catch (IOException e) {
-            e.printStackTrace();
-            return null;
-        }
+        String rawUser = preferences.getString(CURRENT_USER, "");
+        if (!rawUser.isEmpty()) {
+            try {
+                return objectMapper.readValue(rawUser, User.class);
+            } catch (IOException e) {
+                e.printStackTrace();
+                return null;
+            }
+        } else return null;
     }
 }

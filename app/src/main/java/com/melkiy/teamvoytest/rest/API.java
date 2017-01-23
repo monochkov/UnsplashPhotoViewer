@@ -11,8 +11,6 @@ import com.melkiy.teamvoytest.activities.LoginActivity;
 import com.melkiy.teamvoytest.models.AccessToken;
 import com.melkiy.teamvoytest.models.User;
 
-import org.greenrobot.eventbus.EventBus;
-
 import java.io.IOException;
 import java.util.concurrent.TimeUnit;
 
@@ -33,7 +31,6 @@ public final class API {
     private static final API api = new API();
     private static final String API_BASE_URL = "https://" + BuildConfig.API_HOST + "/";
 
-    private final EventBus eventBus = EventBus.getDefault();
     private final AuthorizationService authorizationService;
     private final PhotoService photoService;
     private final UserService userService;
@@ -86,7 +83,6 @@ public final class API {
                 if (response != null) {
                     if (response.isSuccessful()) {
                         setCurrentUser(response.body());
-                        eventBus.post(response.body());
                     }
                 }
             }
