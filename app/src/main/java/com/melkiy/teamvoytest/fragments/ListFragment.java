@@ -21,6 +21,7 @@ import com.melkiy.teamvoytest.models.LikeResponse;
 import com.melkiy.teamvoytest.models.Photo;
 import com.melkiy.teamvoytest.rest.API;
 import com.melkiy.teamvoytest.rest.PhotoService;
+import com.melkiy.teamvoytest.utils.Constants;
 import com.melkiy.teamvoytest.utils.Intents;
 import com.melkiy.teamvoytest.utils.InternetUtils;
 
@@ -38,7 +39,7 @@ public class ListFragment extends Fragment
 
     private SwipeRefreshLayout swipeRefreshLayout;
     private RecyclerView recyclerView;
-    private TextView noInternetTextView;
+    private TextView errorTextView;
     private PhotosRecyclerViewAdapter adapter;
 
     private SortDialogFragment sortDialogFragment;
@@ -99,7 +100,7 @@ public class ListFragment extends Fragment
             }
         });
 
-        noInternetTextView = (TextView) view.findViewById(R.id.no_internet_textview);
+        errorTextView = (TextView) view.findViewById(R.id.no_internet_textview);
 
         swipeRefreshLayout = (SwipeRefreshLayout) view.findViewById(R.id.swipe_refresh);
         swipeRefreshLayout.setOnRefreshListener(this);
@@ -145,6 +146,9 @@ public class ListFragment extends Fragment
                         visibleThreshold = 5;
 
                         setPhotos(response.body());
+                    } else if (response.code() == Constants.ERROR_STATUS_FORBIDDEN) {
+                        setVisibility(false);
+                        errorTextView.setText(Constants.FORBIDDEN_MESSAGE);
                     }
                 }
             }
@@ -164,6 +168,9 @@ public class ListFragment extends Fragment
                     if (response.isSuccessful()) {
                         photos.addAll(response.body());
                         setPhotos(photos);
+                    } if (response.code() == Constants.ERROR_STATUS_FORBIDDEN) {
+                        setVisibility(false);
+                        errorTextView.setText(Constants.FORBIDDEN_MESSAGE);
                     }
                 }
             }
@@ -210,6 +217,9 @@ public class ListFragment extends Fragment
                 if (response != null) {
                     if (response.isSuccessful()) {
                         updatePhoto(response.body());
+                    } if (response.code() == Constants.ERROR_STATUS_FORBIDDEN) {
+                        setVisibility(false);
+                        errorTextView.setText(Constants.FORBIDDEN_MESSAGE);
                     }
                 }
             }
@@ -228,6 +238,9 @@ public class ListFragment extends Fragment
                 if (response != null) {
                     if (response.isSuccessful()) {
                         updatePhoto(response.body());
+                    } if (response.code() == Constants.ERROR_STATUS_FORBIDDEN) {
+                        setVisibility(false);
+                        errorTextView.setText(Constants.FORBIDDEN_MESSAGE);
                     }
                 }
             }
@@ -263,10 +276,10 @@ public class ListFragment extends Fragment
     private void setVisibility(boolean visibility) {
         if (visibility) {
             recyclerView.setVisibility(View.VISIBLE);
-            noInternetTextView.setVisibility(View.GONE);
+            errorTextView.setVisibility(View.GONE);
         } else {
             recyclerView.setVisibility(View.GONE);
-            noInternetTextView.setVisibility(View.VISIBLE);
+            errorTextView.setVisibility(View.VISIBLE);
         }
     }
 }

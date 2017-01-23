@@ -17,6 +17,7 @@ import com.melkiy.teamvoytest.models.LikeResponse;
 import com.melkiy.teamvoytest.models.Photo;
 import com.melkiy.teamvoytest.rest.API;
 import com.melkiy.teamvoytest.rest.PhotoService;
+import com.melkiy.teamvoytest.utils.Constants;
 import com.melkiy.teamvoytest.utils.Intents;
 import com.melkiy.teamvoytest.utils.InternetUtils;
 import com.nostra13.universalimageloader.core.DisplayImageOptions;
@@ -45,7 +46,7 @@ public class RandomPhotoFragment extends Fragment implements SwipeRefreshLayout.
     private ImageView like;
     private TextView countLikes;
     private LinearLayout likeLayout;
-    private TextView noInternetTextView;
+    private TextView errorTextView;
     private CardView cardView;
 
     private Photo photo;
@@ -71,7 +72,7 @@ public class RandomPhotoFragment extends Fragment implements SwipeRefreshLayout.
         like = (ImageView) view.findViewById(R.id.like_image_view);
         countLikes = (TextView) view.findViewById(R.id.like_counter_textview);
         likeLayout = (LinearLayout) view.findViewById(R.id.like_layout);
-        noInternetTextView = (TextView) view.findViewById(R.id.no_internet_textview);
+        errorTextView = (TextView) view.findViewById(R.id.no_internet_textview);
         cardView = (CardView) view.findViewById(R.id.card_view);
 
         swipeRefreshLayout = (SwipeRefreshLayout) view.findViewById(R.id.swipe_refresh);
@@ -117,6 +118,9 @@ public class RandomPhotoFragment extends Fragment implements SwipeRefreshLayout.
                     if (response.isSuccessful()) {
                         setPhoto(response.body());
                         initializeFields(response.body());
+                    } if (response.code() == Constants.ERROR_STATUS_FORBIDDEN) {
+                        setVisibility(false);
+                        errorTextView.setText(Constants.FORBIDDEN_MESSAGE);
                     }
                 }
             }
@@ -135,6 +139,9 @@ public class RandomPhotoFragment extends Fragment implements SwipeRefreshLayout.
                 if (response != null) {
                     if (response.isSuccessful()) {
                         updatePhoto(response.body());
+                    } if (response.code() == Constants.ERROR_STATUS_FORBIDDEN) {
+                        setVisibility(false);
+                        errorTextView.setText(Constants.FORBIDDEN_MESSAGE);
                     }
                 }
             }
@@ -153,6 +160,9 @@ public class RandomPhotoFragment extends Fragment implements SwipeRefreshLayout.
                 if (response != null) {
                     if (response.isSuccessful()) {
                         updatePhoto(response.body());
+                    } if (response.code() == Constants.ERROR_STATUS_FORBIDDEN) {
+                        setVisibility(false);
+                        errorTextView.setText(Constants.FORBIDDEN_MESSAGE);
                     }
                 }
             }
@@ -206,10 +216,10 @@ public class RandomPhotoFragment extends Fragment implements SwipeRefreshLayout.
     private void setVisibility(boolean visibility) {
         if (visibility) {
             cardView.setVisibility(View.VISIBLE);
-            noInternetTextView.setVisibility(View.GONE);
+            errorTextView.setVisibility(View.GONE);
         } else {
             cardView.setVisibility(View.GONE);
-            noInternetTextView.setVisibility(View.VISIBLE);
+            errorTextView.setVisibility(View.VISIBLE);
         }
     }
 }

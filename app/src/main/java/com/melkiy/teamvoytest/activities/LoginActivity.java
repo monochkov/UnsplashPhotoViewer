@@ -17,6 +17,7 @@ import com.melkiy.teamvoytest.models.AccessToken;
 import com.melkiy.teamvoytest.models.User;
 import com.melkiy.teamvoytest.rest.API;
 import com.melkiy.teamvoytest.rest.AuthorizationService;
+import com.melkiy.teamvoytest.utils.Constants;
 import com.melkiy.teamvoytest.utils.Intents;
 import com.melkiy.teamvoytest.utils.InternetUtils;
 
@@ -38,7 +39,7 @@ public class LoginActivity extends AppCompatActivity implements SwipeRefreshLayo
     private EventBus eventBus = EventBus.getDefault();
     private API api = API.getInstance();
     private WebView webView;
-    private TextView noInternetConnectionTextView;
+    private TextView errorTextView;
     private SwipeRefreshLayout swipeRefreshLayout;
     private AuthorizationService authorizationService;
 
@@ -49,7 +50,7 @@ public class LoginActivity extends AppCompatActivity implements SwipeRefreshLayo
 
         authorizationService = API.getInstance().getAuthorizationService();
 
-        noInternetConnectionTextView = (TextView) findViewById(R.id.no_internet_textview);
+        errorTextView = (TextView) findViewById(R.id.no_internet_textview);
         webView = (WebView) findViewById(R.id.webview);
         swipeRefreshLayout = (SwipeRefreshLayout) findViewById(R.id.swipe_refresh);
 
@@ -93,6 +94,9 @@ public class LoginActivity extends AppCompatActivity implements SwipeRefreshLayo
                                 AccessToken accessToken = response.body();
                                 api.setAccessToken(accessToken);
                                 loadCurrentUser();
+                            } if (response.code() == Constants.ERROR_STATUS_FORBIDDEN) {
+                                setVisibility(false);
+                                errorTextView.setText(Constants.FORBIDDEN_MESSAGE);
                             }
                         }
                     }
@@ -114,6 +118,9 @@ public class LoginActivity extends AppCompatActivity implements SwipeRefreshLayo
                         api.setCurrentUser(currentUser);
                         eventBus.post(currentUser);
                         Intents.startMainActivity(LoginActivity.this);
+                    } if (response.code() == Constants.ERROR_STATUS_FORBIDDEN) {
+                        setVisibility(false);
+                        errorTextView.setText(Constants.FORBIDDEN_MESSAGE);
                     }
                 }
             }
@@ -134,10 +141,10 @@ public class LoginActivity extends AppCompatActivity implements SwipeRefreshLayo
     private void setVisibility(boolean webViewVisible) {
         if (webViewVisible) {
             webView.setVisibility(View.VISIBLE);
-            noInternetConnectionTextView.setVisibility(View.GONE);
+            errorTextView.setVisibility(View.GONE);
         } else {
             webView.setVisibility(View.GONE);
-            noInternetConnectionTextView.setVisibility(View.VISIBLE);
+            errorTextView.setVisibility(View.VISIBLE);
         }
     }
 }
