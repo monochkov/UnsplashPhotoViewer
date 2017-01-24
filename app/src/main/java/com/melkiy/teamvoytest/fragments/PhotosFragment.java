@@ -2,6 +2,7 @@ package com.melkiy.teamvoytest.fragments;
 
 import android.graphics.Color;
 import android.os.Bundle;
+import android.support.annotation.Nullable;
 import android.support.v4.app.Fragment;
 import android.support.v4.widget.SwipeRefreshLayout;
 import android.support.v7.widget.DefaultItemAnimator;
@@ -16,13 +17,14 @@ import android.view.ViewGroup;
 import android.widget.TextView;
 
 import com.melkiy.teamvoytest.R;
-import com.melkiy.teamvoytest.adapters.PhotosRecyclerViewAdapter;
+import com.melkiy.teamvoytest.activities.PhotoActivity;
+import com.melkiy.teamvoytest.adapters.PhotosRecyclerAdapter;
 import com.melkiy.teamvoytest.models.LikeResponse;
+import com.melkiy.teamvoytest.models.Order;
 import com.melkiy.teamvoytest.models.Photo;
 import com.melkiy.teamvoytest.rest.API;
 import com.melkiy.teamvoytest.rest.PhotoService;
 import com.melkiy.teamvoytest.utils.Constants;
-import com.melkiy.teamvoytest.utils.Intents;
 import com.melkiy.teamvoytest.utils.InternetUtils;
 
 import java.util.ArrayList;
@@ -32,31 +34,34 @@ import retrofit2.Call;
 import retrofit2.Callback;
 import retrofit2.Response;
 
-public class ListFragment extends Fragment
+public class PhotosFragment extends Fragment
         implements SwipeRefreshLayout.OnRefreshListener,
-        PhotosRecyclerViewAdapter.OnPhotoClickListener,
+        PhotosRecyclerAdapter.OnPhotoClickListener,
         SortDialogFragment.OnOrderListItemClickListener {
 
     private SwipeRefreshLayout swipeRefreshLayout;
     private RecyclerView recyclerView;
     private TextView errorTextView;
-    private PhotosRecyclerViewAdapter adapter;
+    private PhotosRecyclerAdapter adapter;
 
     private SortDialogFragment sortDialogFragment;
 
     private PhotoService photoService = API.getInstance().getPhotoService();
 
     private List<Photo> photos = new ArrayList<>();
-    private String orderBy = SortDialogFragment.ORDER_BY_LATEST;
+    private Order order = Order.LATEST;
 
     //For pagination
     private int page = 1;
     private int previousTotal = 0;
     private boolean loading = true;
     private int visibleThreshold = 5;
-    private int firstVisibleItem, visibleItemCount, totalItemCount;
+    private int firstVisibleItem;
+    private int visibleItemCount;
+    private int totalItemCount;
 
-    public ListFragment() {
+    public static PhotosFragment newInstance() {
+        return new PhotosFragment();
     }
 
     @Override
@@ -66,15 +71,20 @@ public class ListFragment extends Fragment
     }
 
     @Override
-    public View onCreateView(LayoutInflater inflater, ViewGroup container,
+    public View onCreateView(LayoutInflater inflater,
+                             ViewGroup container,
                              Bundle savedInstanceState) {
-        View view = inflater.inflate(R.layout.fragment_list, container, false);
 
+        return inflater.inflate(R.layout.fragment_photos, container, false);
+    }
+
+    @Override
+    public void onViewCreated(View view, @Nullable Bundle savedInstanceState) {
         recyclerView = (RecyclerView) view.findViewById(R.id.photos_recycler_view);
         LinearLayoutManager linearLayoutManager = new LinearLayoutManager(getContext());
         recyclerView.setLayoutManager(linearLayoutManager);
         recyclerView.setItemAnimator(new DefaultItemAnimator());
-        adapter = new PhotosRecyclerViewAdapter(getContext());
+        adapter = new PhotosRecyclerAdapter(getContext());
         adapter.setOnPhotoClickListener(this);
         recyclerView.setAdapter(adapter);
 
@@ -82,17 +92,15 @@ public class ListFragment extends Fragment
         recyclerView.addOnScrollListener(new RecyclerView.OnScrollListener() {
             @Override
             public void onScrolled(RecyclerView recyclerView, int dx, int dy) {
-                super.onScrolled(recyclerView, dx, dy);
-
                 visibleItemCount = recyclerView.getChildCount();
                 totalItemCount = linearLayoutManager.getItemCount();
                 firstVisibleItem = linearLayoutManager.findFirstVisibleItemPosition();
-                if (loading) {
-                    if (totalItemCount > previousTotal) {
-                        loading = false;
-                        previousTotal = totalItemCount;
-                    }
+
+                if (loading && totalItemCount > previousTotal) {
+                    loading = false;
+                    previousTotal = totalItemCount;
                 }
+
                 if (!loading && (totalItemCount - visibleItemCount) <= (firstVisibleItem + visibleThreshold)) {
                     loadPhotosWithPagination(++page);
                     loading = true;
@@ -104,21 +112,18 @@ public class ListFragment extends Fragment
 
         swipeRefreshLayout = (SwipeRefreshLayout) view.findViewById(R.id.swipe_refresh);
         swipeRefreshLayout.setOnRefreshListener(this);
-        swipeRefreshLayout.setColorSchemeColors(
-                Color.RED, Color.GREEN, Color.BLUE, Color.CYAN);
+        swipeRefreshLayout.setColorSchemeColors(Color.RED, Color.GREEN, Color.BLUE, Color.CYAN);
 
-        setVisibility(InternetUtils.isOnline(getContext()));
-        if (InternetUtils.isOnline(getContext())) {
-            loadPhotos(orderBy);
+        showRecyclerView(InternetUtils.hasConnection(getContext()));
+        if (InternetUtils.hasConnection(getContext())) {
+            loadPhotos(order);
             swipeRefreshLayout.setRefreshing(false);
         }
-
-        return view;
     }
 
     @Override
     public void onCreateOptionsMenu(Menu menu, MenuInflater inflater) {
-        super.onCreateOptionsMenu(menu, inflater);
+        inflater.inflate(R.menu.menu_fragment_photos, menu);
     }
 
     @Override
@@ -133,23 +138,23 @@ public class ListFragment extends Fragment
         return super.onOptionsItemSelected(item);
     }
 
-    private void loadPhotos(String orderBy) {
-        photoService.getPhotos(orderBy).enqueue(new Callback<List<Photo>>() {
+    private void loadPhotos(Order order) {
+        photoService.getPhotos(order.getValue()).enqueue(new Callback<List<Photo>>() {
             @Override
             public void onResponse(Call<List<Photo>> call, Response<List<Photo>> response) {
-                if (response != null) {
-                    if (response.isSuccessful()) {
-                        //For pagination
-                        page = 1;
-                        previousTotal = 0;
-                        loading = true;
-                        visibleThreshold = 5;
+                if (response.isSuccessful()) {
+                    //For pagination
+                    page = 1;
+                    previousTotal = 0;
+                    loading = true;
+                    visibleThreshold = 5;
 
-                        setPhotos(response.body());
-                    } else if (response.code() == Constants.ERROR_STATUS_FORBIDDEN) {
-                        setVisibility(false);
-                        errorTextView.setText(Constants.FORBIDDEN_MESSAGE);
-                    }
+                    setPhotos(response.body());
+                }
+
+                if (response.code() == Constants.ERROR_STATUS_FORBIDDEN) {
+                    showRecyclerView(false);
+                    errorTextView.setText(Constants.FORBIDDEN_MESSAGE);
                 }
             }
 
@@ -161,17 +166,17 @@ public class ListFragment extends Fragment
     }
 
     private void loadPhotosWithPagination(int page) {
-        photoService.getPhotos(page, orderBy).enqueue(new Callback<List<Photo>>() {
+        photoService.getPhotos(page, order.getValue()).enqueue(new Callback<List<Photo>>() {
             @Override
             public void onResponse(Call<List<Photo>> call, Response<List<Photo>> response) {
-                if (response != null) {
-                    if (response.isSuccessful()) {
-                        photos.addAll(response.body());
-                        setPhotos(photos);
-                    } if (response.code() == Constants.ERROR_STATUS_FORBIDDEN) {
-                        setVisibility(false);
-                        errorTextView.setText(Constants.FORBIDDEN_MESSAGE);
-                    }
+                if (response.isSuccessful()) {
+                    photos.addAll(response.body());
+                    setPhotos(photos);
+                }
+
+                if (response.code() == Constants.ERROR_STATUS_FORBIDDEN) {
+                    showRecyclerView(false);
+                    errorTextView.setText(Constants.FORBIDDEN_MESSAGE);
                 }
             }
 
@@ -189,16 +194,16 @@ public class ListFragment extends Fragment
 
     @Override
     public void onRefresh() {
-        setVisibility(InternetUtils.isOnline(getContext()));
-        if (InternetUtils.isOnline(getContext())) {
-            loadPhotos(orderBy);
+        showRecyclerView(InternetUtils.hasConnection(getContext()));
+        if (InternetUtils.hasConnection(getContext())) {
+            loadPhotos(order);
         }
         swipeRefreshLayout.setRefreshing(false);
     }
 
     @Override
     public void onPhotoClicked(String photoUrl) {
-        Intents.startPhotoActivity(getContext(), photoUrl);
+        PhotoActivity.show(getContext(), photoUrl);
     }
 
     @Override
@@ -214,13 +219,13 @@ public class ListFragment extends Fragment
         photoService.like(photoId).enqueue(new Callback<LikeResponse>() {
             @Override
             public void onResponse(Call<LikeResponse> call, Response<LikeResponse> response) {
-                if (response != null) {
-                    if (response.isSuccessful()) {
-                        updatePhoto(response.body());
-                    } if (response.code() == Constants.ERROR_STATUS_FORBIDDEN) {
-                        setVisibility(false);
-                        errorTextView.setText(Constants.FORBIDDEN_MESSAGE);
-                    }
+                if (response.isSuccessful()) {
+                    updatePhoto(response.body());
+                }
+
+                if (response.code() == Constants.ERROR_STATUS_FORBIDDEN) {
+                    showRecyclerView(false);
+                    errorTextView.setText(Constants.FORBIDDEN_MESSAGE);
                 }
             }
 
@@ -235,13 +240,13 @@ public class ListFragment extends Fragment
         photoService.unlike(photoId).enqueue(new Callback<LikeResponse>() {
             @Override
             public void onResponse(Call<LikeResponse> call, Response<LikeResponse> response) {
-                if (response != null) {
-                    if (response.isSuccessful()) {
-                        updatePhoto(response.body());
-                    } if (response.code() == Constants.ERROR_STATUS_FORBIDDEN) {
-                        setVisibility(false);
-                        errorTextView.setText(Constants.FORBIDDEN_MESSAGE);
-                    }
+                if (response.isSuccessful()) {
+                    updatePhoto(response.body());
+                }
+
+                if (response.code() == Constants.ERROR_STATUS_FORBIDDEN) {
+                    showRecyclerView(false);
+                    errorTextView.setText(Constants.FORBIDDEN_MESSAGE);
                 }
             }
 
@@ -265,15 +270,15 @@ public class ListFragment extends Fragment
     }
 
     @Override
-    public void onOrderValueClick(String orderBy) {
-        this.orderBy = orderBy;
-        setVisibility(InternetUtils.isOnline(getContext()));
-        if (InternetUtils.isOnline(getContext())) {
-            loadPhotos(orderBy);
+    public void onOrderValueClick(Order order) {
+        this.order = order;
+        showRecyclerView(InternetUtils.hasConnection(getContext()));
+        if (InternetUtils.hasConnection(getContext())) {
+            loadPhotos(order);
         }
     }
 
-    private void setVisibility(boolean visibility) {
+    private void showRecyclerView(boolean visibility) {
         if (visibility) {
             recyclerView.setVisibility(View.VISIBLE);
             errorTextView.setVisibility(View.GONE);

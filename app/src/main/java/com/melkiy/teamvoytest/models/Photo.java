@@ -8,18 +8,31 @@ import java.io.Serializable;
 
 public class Photo implements Serializable {
 
+    @JsonProperty("id")
     private String id;
 
     @JsonProperty("created_at")
     private Instant createdAt;
+
+    @JsonProperty("width")
     private int width;
+
+    @JsonProperty("height")
     private int height;
+
+    @JsonProperty("color")
     private String color;
+
+    @JsonProperty("likes")
     private int likes;
 
     @JsonProperty("liked_by_user")
     private boolean likedByUser;
+
+    @JsonProperty("user")
     private User user;
+
+    @JsonProperty("urls")
     private Urls urls;
 
     public String getId() {

@@ -6,10 +6,13 @@ import java.io.Serializable;
 
 public class User implements Serializable {
 
-    public static final String CURRENT_USER = "current_user";
-
+    @JsonProperty("id")
     private String id;
+
+    @JsonProperty("username")
     private String username;
+
+    @JsonProperty("name")
     private String name;
 
     @JsonProperty("total_likes")

@@ -4,7 +4,6 @@ import android.os.Bundle;
 import android.support.v7.app.AppCompatActivity;
 
 import com.melkiy.teamvoytest.rest.API;
-import com.melkiy.teamvoytest.utils.Intents;
 
 public class ProxyActivity extends AppCompatActivity {
 
@@ -16,9 +15,9 @@ public class ProxyActivity extends AppCompatActivity {
 
         api.initialize(this);
         if (api.isAuthenticated()) {
-            Intents.startMainActivity(this);
+            MainActivity.show(this);
         } else {
-            Intents.startLoginActivity(this);
+            LoginActivity.show(this);
         }
         finish();
     }

@@ -1,6 +1,6 @@
 package com.melkiy.teamvoytest;
 
-import com.nostra13.universalimageloader.core.DisplayImageOptions;
+import com.melkiy.teamvoytest.utils.ImageLoaderDisplayOptions;
 import com.nostra13.universalimageloader.core.ImageLoader;
 import com.nostra13.universalimageloader.core.ImageLoaderConfiguration;
 
@@ -10,15 +10,8 @@ public class Application extends android.app.Application {
     public void onCreate() {
         super.onCreate();
 
-        DisplayImageOptions defaultOptions = new DisplayImageOptions.Builder()
-                .showImageOnLoading(android.R.color.transparent)
-                .showImageForEmptyUri(android.R.drawable.sym_def_app_icon)
-                .showImageOnFail(android.R.drawable.sym_def_app_icon)
-                .cacheInMemory(true)
-                .cacheOnDisk(true)
-                .build();
         ImageLoaderConfiguration config = new ImageLoaderConfiguration.Builder(this)
-                .defaultDisplayImageOptions(defaultOptions)
+                .defaultDisplayImageOptions(ImageLoaderDisplayOptions.DEFAULT)
                 .build();
 
         ImageLoader.getInstance().init(config);

@@ -1,13 +1,24 @@
 package com.melkiy.teamvoytest.models;
 
+import com.fasterxml.jackson.annotation.JsonProperty;
+
 import java.io.Serializable;
 
 public class Urls implements Serializable {
 
+    @JsonProperty("raw")
     private String raw;
+
+    @JsonProperty("full")
     private String full;
+
+    @JsonProperty("regular")
     private String regular;
+
+    @JsonProperty("small")
     private String small;
+
+    @JsonProperty("thumb")
     private String thumb;
 
     public String getRaw() {

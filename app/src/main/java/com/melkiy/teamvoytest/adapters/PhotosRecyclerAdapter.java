@@ -8,10 +8,9 @@ import android.view.ViewGroup;
 
 import com.melkiy.teamvoytest.R;
 import com.melkiy.teamvoytest.models.Photo;
+import com.melkiy.teamvoytest.utils.ImageLoaderDisplayOptions;
 import com.melkiy.teamvoytest.viewholders.PhotosListViewHolder;
-import com.nostra13.universalimageloader.core.DisplayImageOptions;
 import com.nostra13.universalimageloader.core.ImageLoader;
-import com.nostra13.universalimageloader.core.display.RoundedBitmapDisplayer;
 
 import org.joda.time.format.DateTimeFormat;
 import org.joda.time.format.DateTimeFormatter;
@@ -19,26 +18,24 @@ import org.joda.time.format.DateTimeFormatter;
 import java.util.ArrayList;
 import java.util.List;
 
-public class PhotosRecyclerViewAdapter extends RecyclerView.Adapter<PhotosListViewHolder> {
+public class PhotosRecyclerAdapter extends RecyclerView.Adapter<PhotosListViewHolder> {
 
-    private Context context;
-    private ImageLoader imageLoader = ImageLoader.getInstance();
+    public interface OnPhotoClickListener {
+
+        void onPhotoClicked(String imageUrl);
+        void onLikeClicked(Photo photo);
+    }
+
+    private static final DateTimeFormatter DATE_FORMATTER = DateTimeFormat.forPattern("dd MMM yyyy HH:mm");
+
+    private final ImageLoader imageLoader = ImageLoader.getInstance();
+    private final Context context;
     private List<Photo> photos = new ArrayList<>();
-
-    private DisplayImageOptions options;
 
     private OnPhotoClickListener onPhotoClickListener;
 
-    public PhotosRecyclerViewAdapter(Context context) {
+    public PhotosRecyclerAdapter(Context context) {
         this.context = context;
-        options = new DisplayImageOptions.Builder()
-                .displayer(new RoundedBitmapDisplayer(10000))
-                .showImageOnLoading(android.R.color.transparent)
-                .showImageForEmptyUri(android.R.drawable.sym_def_app_icon)
-                .showImageOnFail(android.R.drawable.sym_def_app_icon)
-                .cacheInMemory(true)
-                .cacheOnDisk(true)
-                .build();
     }
 
     @Override
@@ -50,11 +47,13 @@ public class PhotosRecyclerViewAdapter extends RecyclerView.Adapter<PhotosListVi
     @Override
     public void onBindViewHolder(PhotosListViewHolder holder, int position) {
         Photo photo = photos.get(position);
-        imageLoader.displayImage(photo.getUser().getProfileImage().getMedium(), holder.userProfilePhoto, options);
+        imageLoader.displayImage(
+                photo.getUser().getProfileImage().getMedium(),
+                holder.userProfilePhoto,
+                ImageLoaderDisplayOptions.DEFAULT_ROUNDED);
         holder.username.setText(photo.getUser().getName());
 
-        DateTimeFormatter formatter = DateTimeFormat.forPattern("dd MMM yyyy HH:mm");
-        holder.datePublication.setText(formatter.print(photo.getCreatedAt()));
+        holder.datePublication.setText(DATE_FORMATTER.print(photo.getCreatedAt()));
 
         imageLoader.displayImage(photo.getUrls().getRegular(), holder.photo);
         if (photo.isLikedByUser()) {
@@ -83,12 +82,6 @@ public class PhotosRecyclerViewAdapter extends RecyclerView.Adapter<PhotosListVi
     public void setPhotos(List<Photo> photos) {
         this.photos = photos;
         notifyDataSetChanged();
-    }
-
-    public interface OnPhotoClickListener {
-
-        void onPhotoClicked(String imageUrl);
-        void onLikeClicked(Photo photo);
     }
 
     public void setOnPhotoClickListener(OnPhotoClickListener listener) {

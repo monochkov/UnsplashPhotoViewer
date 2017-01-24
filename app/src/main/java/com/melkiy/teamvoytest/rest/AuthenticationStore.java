@@ -41,9 +41,9 @@ public class AuthenticationStore {
                 return objectMapper.readValue(rawToken, AccessToken.class);
             } catch (IOException e) {
                 e.printStackTrace();
-                return null;
             }
-        } else return null;
+        }
+        return null;
     }
 
     public void saveCurrentUser(User user) {
@@ -64,8 +64,8 @@ public class AuthenticationStore {
                 return objectMapper.readValue(rawUser, User.class);
             } catch (IOException e) {
                 e.printStackTrace();
-                return null;
             }
-        } else return null;
+        }
+        return null;
     }
 }

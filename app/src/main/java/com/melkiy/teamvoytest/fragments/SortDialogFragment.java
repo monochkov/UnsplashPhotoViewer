@@ -6,13 +6,19 @@ import android.app.DialogFragment;
 import android.os.Bundle;
 
 import com.melkiy.teamvoytest.R;
+import com.melkiy.teamvoytest.models.Order;
 
 public class SortDialogFragment extends DialogFragment {
 
+    public interface OnOrderListItemClickListener {
+        void onOrderValueClick(Order order);
+    }
+
     public static final String TAG = SortDialogFragment.class.getName();
-    public static final String ORDER_BY_LATEST = "latest";
-    public static final String ORDER_BY_OLDEST = "oldest";
-    public static final String ORDER_BY_POPULAR = "popular";
+
+    private static final int POSITION_ORDER_BY_LATEST = 0;
+    private static final int POSITION_ORDER_BY_OLDEST = 1;
+    private static final int POSITION_ORDER_BY_POPULAR = 2;
 
     private OnOrderListItemClickListener clickListener;
 
@@ -22,14 +28,14 @@ public class SortDialogFragment extends DialogFragment {
         builder.setTitle(R.string.order_by)
                 .setItems(R.array.order_by, (dialog, which) -> {
                     switch (which) {
-                        case 0:
-                            notifyCallClicked(ORDER_BY_LATEST);
+                        case POSITION_ORDER_BY_LATEST:
+                            notifyCallClicked(Order.LATEST);
                             break;
-                        case 1:
-                            notifyCallClicked(ORDER_BY_OLDEST);
+                        case POSITION_ORDER_BY_OLDEST:
+                            notifyCallClicked(Order.OLDEST);
                             break;
-                        case 2:
-                            notifyCallClicked(ORDER_BY_POPULAR);
+                        case POSITION_ORDER_BY_POPULAR:
+                            notifyCallClicked(Order.POPULAR);
                             break;
                     }
                 });
@@ -40,13 +46,9 @@ public class SortDialogFragment extends DialogFragment {
         this.clickListener = clickListener;
     }
 
-    public interface OnOrderListItemClickListener {
-        void onOrderValueClick(String orderBy);
-    }
-
-    private void notifyCallClicked(String orderBy) {
+    private void notifyCallClicked(Order order) {
         if (clickListener != null) {
-            clickListener.onOrderValueClick(orderBy);
+            clickListener.onOrderValueClick(order);
         }
     }
 }

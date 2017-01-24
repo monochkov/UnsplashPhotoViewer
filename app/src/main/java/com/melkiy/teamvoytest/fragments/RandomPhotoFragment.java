@@ -2,6 +2,7 @@ package com.melkiy.teamvoytest.fragments;
 
 import android.graphics.Color;
 import android.os.Bundle;
+import android.support.annotation.Nullable;
 import android.support.v4.app.Fragment;
 import android.support.v4.widget.SwipeRefreshLayout;
 import android.support.v7.widget.CardView;
@@ -13,12 +14,12 @@ import android.widget.LinearLayout;
 import android.widget.TextView;
 
 import com.melkiy.teamvoytest.R;
+import com.melkiy.teamvoytest.activities.PhotoActivity;
 import com.melkiy.teamvoytest.models.LikeResponse;
 import com.melkiy.teamvoytest.models.Photo;
 import com.melkiy.teamvoytest.rest.API;
 import com.melkiy.teamvoytest.rest.PhotoService;
 import com.melkiy.teamvoytest.utils.Constants;
-import com.melkiy.teamvoytest.utils.Intents;
 import com.melkiy.teamvoytest.utils.InternetUtils;
 import com.nostra13.universalimageloader.core.DisplayImageOptions;
 import com.nostra13.universalimageloader.core.ImageLoader;
@@ -51,20 +52,19 @@ public class RandomPhotoFragment extends Fragment implements SwipeRefreshLayout.
 
     private Photo photo;
 
-    public RandomPhotoFragment() {
-    }
-
-    @Override
-    public void onCreate(Bundle savedInstanceState) {
-        super.onCreate(savedInstanceState);
-        setHasOptionsMenu(false);
+    public static RandomPhotoFragment newInstance() {
+        return new RandomPhotoFragment();
     }
 
     @Override
     public View onCreateView(LayoutInflater inflater, ViewGroup container,
                              Bundle savedInstanceState) {
-        View view = inflater.inflate(R.layout.fragment_random_photo, container, false);
 
+        return inflater.inflate(R.layout.fragment_random_photo, container, false);
+    }
+
+    @Override
+    public void onViewCreated(View view, @Nullable Bundle savedInstanceState) {
         userProfilePhoto = (ImageView) view.findViewById(R.id.user_profile_photo);
         username = (TextView) view.findViewById(R.id.username);
         datePublication = (TextView) view.findViewById(R.id.date_publication);
@@ -90,14 +90,14 @@ public class RandomPhotoFragment extends Fragment implements SwipeRefreshLayout.
                 .build();
 
 
-        setVisibility(InternetUtils.isOnline(getContext()));
-        if (InternetUtils.isOnline(getContext())) {
+        setVisibility(InternetUtils.hasConnection(getContext()));
+        if (InternetUtils.hasConnection(getContext())) {
             loadRandomPhoto();
             swipeRefreshLayout.setRefreshing(false);
         }
 
         photoImageView.setOnClickListener(v -> {
-            Intents.startPhotoActivity(getContext(), photo.getUrls().getRegular());
+            PhotoActivity.show(getContext(), photo.getUrls().getRegular());
         });
 
         likeLayout.setOnClickListener(v -> {
@@ -107,21 +107,20 @@ public class RandomPhotoFragment extends Fragment implements SwipeRefreshLayout.
                 like(photo.getId());
             }
         });
-        return view;
     }
 
     private void loadRandomPhoto() {
         photoService.getRandomPhoto().enqueue(new Callback<Photo>() {
             @Override
             public void onResponse(Call<Photo> call, Response<Photo> response) {
-                if (response != null) {
-                    if (response.isSuccessful()) {
-                        setPhoto(response.body());
-                        initializeFields(response.body());
-                    } if (response.code() == Constants.ERROR_STATUS_FORBIDDEN) {
-                        setVisibility(false);
-                        errorTextView.setText(Constants.FORBIDDEN_MESSAGE);
-                    }
+                if (response.isSuccessful()) {
+                    setPhoto(response.body());
+                    initializeFields(response.body());
+                }
+
+                if (response.code() == Constants.ERROR_STATUS_FORBIDDEN) {
+                    setVisibility(false);
+                    errorTextView.setText(Constants.FORBIDDEN_MESSAGE);
                 }
             }
 
@@ -136,13 +135,13 @@ public class RandomPhotoFragment extends Fragment implements SwipeRefreshLayout.
         photoService.like(photoId).enqueue(new Callback<LikeResponse>() {
             @Override
             public void onResponse(Call<LikeResponse> call, Response<LikeResponse> response) {
-                if (response != null) {
-                    if (response.isSuccessful()) {
-                        updatePhoto(response.body());
-                    } if (response.code() == Constants.ERROR_STATUS_FORBIDDEN) {
-                        setVisibility(false);
-                        errorTextView.setText(Constants.FORBIDDEN_MESSAGE);
-                    }
+                if (response.isSuccessful()) {
+                    updatePhoto(response.body());
+                }
+
+                if (response.code() == Constants.ERROR_STATUS_FORBIDDEN) {
+                    setVisibility(false);
+                    errorTextView.setText(Constants.FORBIDDEN_MESSAGE);
                 }
             }
 
@@ -157,13 +156,13 @@ public class RandomPhotoFragment extends Fragment implements SwipeRefreshLayout.
         photoService.unlike(photoId).enqueue(new Callback<LikeResponse>() {
             @Override
             public void onResponse(Call<LikeResponse> call, Response<LikeResponse> response) {
-                if (response != null) {
-                    if (response.isSuccessful()) {
-                        updatePhoto(response.body());
-                    } if (response.code() == Constants.ERROR_STATUS_FORBIDDEN) {
-                        setVisibility(false);
-                        errorTextView.setText(Constants.FORBIDDEN_MESSAGE);
-                    }
+                if (response.isSuccessful()) {
+                    updatePhoto(response.body());
+                }
+
+                if (response.code() == Constants.ERROR_STATUS_FORBIDDEN) {
+                    setVisibility(false);
+                    errorTextView.setText(Constants.FORBIDDEN_MESSAGE);
                 }
             }
 
@@ -206,8 +205,8 @@ public class RandomPhotoFragment extends Fragment implements SwipeRefreshLayout.
 
     @Override
     public void onRefresh() {
-        setVisibility(InternetUtils.isOnline(getContext()));
-        if (InternetUtils.isOnline(getContext())) {
+        setVisibility(InternetUtils.hasConnection(getContext()));
+        if (InternetUtils.hasConnection(getContext())) {
             loadRandomPhoto();
         }
         swipeRefreshLayout.setRefreshing(false);

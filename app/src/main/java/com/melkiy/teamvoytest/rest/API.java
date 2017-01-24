@@ -6,7 +6,7 @@ import android.util.Log;
 import com.fasterxml.jackson.databind.DeserializationFeature;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.datatype.joda.JodaModule;
-import com.melkiy.teamvoytest.BuildConfig;
+import com.melkiy.teamvoytest.Configuration;
 import com.melkiy.teamvoytest.activities.LoginActivity;
 import com.melkiy.teamvoytest.models.AccessToken;
 import com.melkiy.teamvoytest.models.User;
@@ -29,7 +29,7 @@ public final class API {
 
     private static final ObjectMapper objectMapper = new ObjectMapper();
     private static final API api = new API();
-    private static final String API_BASE_URL = "https://" + BuildConfig.API_HOST + "/";
+    private static final String API_BASE_URL = "https://" + Configuration.API_HOST + "/";
 
     private final AuthorizationService authorizationService;
     private final PhotoService photoService;
@@ -80,10 +80,8 @@ public final class API {
         userService.getCurrentUser().enqueue(new Callback<User>() {
             @Override
             public void onResponse(Call<User> call, Response<User> response) {
-                if (response != null) {
-                    if (response.isSuccessful()) {
-                        setCurrentUser(response.body());
-                    }
+                if (response.isSuccessful()) {
+                    setCurrentUser(response.body());
                 }
             }
 

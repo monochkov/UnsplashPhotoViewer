@@ -16,10 +16,10 @@ android {
         debug {
             buildConfigField "String", "CLIENT_ID", "\"558e295fbdab217e5cab4e0796586c9de9a6c9c36627482d55d57b353f3dae34\""
             buildConfigField "String", "CLIENT_SECRET", "\"d98c30db05f99d736d1c0f6878b2f367139043df9152a86b754c56283462a70c\""
-            buildConfigField "String", "API_HOST", "\"api.unsplash.com\""
-            buildConfigField "String", "REDIRECT_URI", "\"https://teamvoy-test.com/blank\""
         }
         release {
+            buildConfigField "String", "CLIENT_ID", "\"558e295fbdab217e5cab4e0796586c9de9a6c9c36627482d55d57b353f3dae34\""
+            buildConfigField "String", "CLIENT_SECRET", "\"d98c30db05f99d736d1c0f6878b2f367139043df9152a86b754c56283462a70c\""
             minifyEnabled false
             proguardFiles getDefaultProguardFile('proguard-android.txt'), 'proguard-rules.pro'
         }
