@@ -3,5 +3,5 @@
     android:id="@+id/photo_image_view"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
-    tools:context="com.melkiy.teamvoytest.activities.PhotoActivity"/>
+    tools:context="com.melkiy.unsplashphotoviewer.activities.PhotoActivity"/>
 

@@ -1,0 +1,33 @@
+package com.melkiy.unsplashphotoviewer.rest;
+
+import com.melkiy.unsplashphotoviewer.models.LikeResponse;
+import com.melkiy.unsplashphotoviewer.models.Photo;
+
+import java.util.List;
+
+import retrofit2.Call;
+import retrofit2.http.DELETE;
+import retrofit2.http.GET;
+import retrofit2.http.POST;
+import retrofit2.http.Path;
+import retrofit2.http.Query;
+
+public interface PhotoService {
+
+    @GET("photos")
+    Call<List<Photo>> getPhotos(@Query("order_by") String order);
+
+    @GET("photos")
+    Call<List<Photo>> getPhotos(@Query("page") int page,
+                                @Query("order_by") String order);
+
+
+    @GET("photos/random")
+    Call<Photo> getRandomPhoto();
+
+    @POST("photos/{id}/like")
+    Call<LikeResponse> like(@Path("id") String id);
+
+    @DELETE("photos/{id}/like")
+    Call<LikeResponse> unlike(@Path("id") String id);
+}
